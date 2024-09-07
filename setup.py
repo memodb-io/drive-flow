@@ -25,7 +25,7 @@ setuptools.setup(
     url=vars2readme["__url__"],
     version=vars2readme["__version__"],
     author=vars2readme["__author__"],
-    description="Build event-driven applications with python functions",
+    description="Build event-driven workflows with python functions",
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=["drive_events"],
