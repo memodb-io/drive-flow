@@ -6,7 +6,7 @@ def test_func_to_string():
         print(a, b, c)
         return False
 
-    func_string = """tests.test_utils[5]
+    func_string = """tests.test_utils.l_5
     def my_func(a, b: str, c: float = 3.14) -> bool:
         print(a, b, c)
         return False"""
@@ -15,7 +15,7 @@ def test_func_to_string():
         def __call__(self, a, b, v):
             return a + b + v
 
-    class_string = """tests.test_utils[15].Fool
+    class_string = """tests.test_utils.l_15.Fool
         def __call__(self, a, b, v):
             return a + b + v"""
 

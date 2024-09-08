@@ -1,5 +1,18 @@
+import logging
+import asyncio
 import inspect
 import hashlib
+
+logger = logging.getLogger("drive-events")
+
+
+def always_get_a_event_loop():
+    try:
+        return asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        return loop
 
 
 def function_or_method_to_repr(func_or_method: callable) -> str:
@@ -9,9 +22,9 @@ def function_or_method_to_repr(func_or_method: callable) -> str:
 
     if inspect.ismethod(func_or_method):
         class_name = func_or_method.__self__.__class__.__name__
-        return f"{module}[{line_number}].{class_name}.{name}".strip()
+        return f"{module}.l_{line_number}.{class_name}.{name}".strip()
     elif inspect.isfunction(func_or_method):
-        return f"{module}[{line_number}].{name}".strip()
+        return f"{module}.l_{line_number}.{name}".strip()
     else:
         raise ValueError("Input must be a function or method")
 
@@ -23,9 +36,9 @@ def function_or_method_to_string(func_or_method: callable) -> str:
 
     if inspect.ismethod(func_or_method):
         class_name = func_or_method.__self__.__class__.__name__
-        return f"{module}[{line_number}].{class_name}\n{source}".strip()
+        return f"{module}.l_{line_number}.{class_name}\n{source}".strip()
     elif inspect.isfunction(func_or_method):
-        return f"{module}[{line_number}]\n{source}".strip()
+        return f"{module}.l_{line_number}\n{source}".strip()
     else:
         raise ValueError("Input must be a function or method")
 
