@@ -30,13 +30,13 @@ class EventGroup:
 
 class BaseEvent:
     parent_groups: dict[str, EventGroup]
-    func_inst: Callable
+    func_inst: EventFunction
     id: str
     repr_name: str
 
     def __init__(
         self,
-        func_inst: Callable,
+        func_inst: EventFunction,
         parent_groups: dict[str, EventGroup] = None,
     ):
         self.parent_groups = parent_groups or {}
@@ -46,36 +46,7 @@ class BaseEvent:
 
     def debug_string(self, exclude_events: set[str] = None) -> str:
         exclude_events = exclude_events or set([self.id])
-
-        def format_parents(parents: dict[str, EventGroup], indent=""):
-            result = []
-            for i, parent_group in enumerate(parents.values()):
-                is_last_group = i == len(parents) - 1
-                group_prefix = "└─ " if is_last_group else "├─ "
-                result.append(indent + group_prefix + f"<{parent_group.name}>")
-                for j, parent in enumerate(parent_group.events):
-                    root_events = copy(exclude_events)
-                    is_last = j == len(parent_group.events) - 1
-                    child_indent = indent + ("    " if is_last_group else "│   ")
-                    inter_indent = "   " if is_last else "│  "
-                    prefix = "└─ " if is_last else "├─ "
-
-                    if parent.id in root_events:
-                        result.append(
-                            f"{child_indent}{prefix}{parent.repr_name} <loop>"
-                        )
-                        continue
-                    root_events.add(parent.id)
-                    parent_debug = parent.debug_string(
-                        exclude_events=root_events
-                    ).split("\n")
-                    parent_debug = [p for p in parent_debug if p.strip()]
-                    result.append(f"{child_indent}{prefix}{parent.repr_name}")
-                    for line in parent_debug[1:]:
-                        result.append(f"{child_indent}{inter_indent}{line}")
-            return "\n".join(result)
-
-        parents_str = format_parents(self.parent_groups)
+        parents_str = format_parents(self.parent_groups, exclude_events=exclude_events)
         return f"{self.repr_name}\n{parents_str}"
 
     def __repr__(self) -> str:
@@ -89,3 +60,29 @@ class ReturnBehavior(Enum):
     DISPATCH = "dispatch"
     GOTO = "goto"
     ABORT = "abort"
+
+
+def format_parents(parents: dict[str, EventGroup], exclude_events: set[str], indent=""):
+    # Below code is ugly
+    # But it works and only for debug display
+    result = []
+    for i, parent_group in enumerate(parents.values()):
+        is_last_group = i == len(parents) - 1
+        group_prefix = "└─ " if is_last_group else "├─ "
+        result.append(indent + group_prefix + f"<{parent_group.name}>")
+        for j, parent in enumerate(parent_group.events):
+            root_events = copy(exclude_events)
+            is_last = j == len(parent_group.events) - 1
+            child_indent = indent + ("    " if is_last_group else "│   ")
+            inter_indent = "   " if is_last else "│  "
+            prefix = "└─ " if is_last else "├─ "
+            if parent.id in root_events:
+                result.append(f"{child_indent}{prefix}{parent.repr_name} <loop>")
+                continue
+            root_events.add(parent.id)
+            parent_debug = parent.debug_string(exclude_events=root_events).split("\n")
+            parent_debug = [p for p in parent_debug if p.strip()]
+            result.append(f"{child_indent}{prefix}{parent.repr_name}")
+            for line in parent_debug[1:]:
+                result.append(f"{child_indent}{inter_indent}{line}")
+    return "\n".join(result)
