@@ -1,5 +1,5 @@
 from copy import copy
-from dataclasses import dataclass
+from enum import Enum
 from typing import Union, Callable, Any, Awaitable
 
 from .utils import (
@@ -29,7 +29,6 @@ class BaseEvent:
         self.repr_name = function_or_method_to_repr(self.func_inst)
 
     def debug_string(self, exclude_events: set[str] = None) -> str:
-        # root_events = root_events or set([self.id])
         exclude_events = exclude_events or set([self.id])
 
         def format_parents(parents: list[list["BaseEvent"]], indent=""):
@@ -65,5 +64,11 @@ class BaseEvent:
     def __repr__(self) -> str:
         return f"Node(source={self.repr_name})"
 
-    async def solo_run(self, event_input: EventInput):
+    async def solo_run(self, event_input: EventInput) -> Awaitable[Any]:
         return await self.func_inst(event_input)
+
+
+class ReturnBehavior(Enum):
+    DISPATCH = "dispatch"
+    GOTO = "goto"
+    ABORT = "abort"

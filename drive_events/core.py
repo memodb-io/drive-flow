@@ -1,3 +1,4 @@
+import inspect
 from typing import Callable
 from .types import BaseEvent, EventFunction
 
@@ -31,6 +32,9 @@ class EventEngineCls:
     def make_event(self, func: EventFunction) -> BaseEvent:
         if isinstance(func, BaseEvent):
             return func
+        assert inspect.iscoroutinefunction(
+            func
+        ), "Event function must be a coroutine function"
         event = BaseEvent(func)
         self.__function_maps[event.id] = func
         self.__event_maps[event.id] = event
