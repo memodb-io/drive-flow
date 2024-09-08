@@ -1,6 +1,36 @@
 import pytest
 
 from drive_events import default_drive, EventInput
+from drive_events.types import BaseEvent
+
+
+@pytest.mark.asyncio
+async def test_set_and_reset():
+    @default_drive.make_event
+    async def a(event: EventInput):
+        return 1
+
+    @default_drive.listen_groups([a])
+    async def b(event: EventInput):
+        return 2
+
+    default_drive.reset()
+
+    with pytest.raises(AssertionError):
+
+        @default_drive.listen_groups([a])
+        async def b(event: EventInput):
+            return 2
+
+
+@pytest.mark.asyncio
+async def test_duplicate_decorator():
+    @default_drive.make_event
+    @default_drive.make_event
+    async def a(event: EventInput):
+        return 1
+
+    assert isinstance(a, BaseEvent)
 
 
 @pytest.mark.asyncio

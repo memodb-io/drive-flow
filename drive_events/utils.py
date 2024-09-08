@@ -16,31 +16,35 @@ def always_get_a_event_loop():
 
 
 def function_or_method_to_repr(func_or_method: callable) -> str:
+    is_method = inspect.ismethod(func_or_method)
+    is_function = inspect.isfunction(func_or_method)
+    if not is_method and not is_function:
+        raise ValueError("Input must be a function or method")
     module = func_or_method.__module__
     name = func_or_method.__name__
     line_number = inspect.getsourcelines(func_or_method)[1]
 
-    if inspect.ismethod(func_or_method):
+    if is_method:
         class_name = func_or_method.__self__.__class__.__name__
         return f"{module}.l_{line_number}.{class_name}.{name}".strip()
-    elif inspect.isfunction(func_or_method):
-        return f"{module}.l_{line_number}.{name}".strip()
     else:
-        raise ValueError("Input must be a function or method")
+        return f"{module}.l_{line_number}.{name}".strip()
 
 
 def function_or_method_to_string(func_or_method: callable) -> str:
+    is_method = inspect.ismethod(func_or_method)
+    is_function = inspect.isfunction(func_or_method)
+    if not is_method and not is_function:
+        raise ValueError("Input must be a function or method")
     module = func_or_method.__module__
     source = inspect.getsource(func_or_method)
     line_number = inspect.getsourcelines(func_or_method)[1]
 
-    if inspect.ismethod(func_or_method):
+    if is_method:
         class_name = func_or_method.__self__.__class__.__name__
         return f"{module}.l_{line_number}.{class_name}\n{source}".strip()
-    elif inspect.isfunction(func_or_method):
-        return f"{module}.l_{line_number}\n{source}".strip()
     else:
-        raise ValueError("Input must be a function or method")
+        return f"{module}.l_{line_number}\n{source}".strip()
 
 
 def string_to_md5_hash(string: str) -> str:
