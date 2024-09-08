@@ -13,15 +13,18 @@ class EventEngineCls:
         self.__event_maps = {}
 
     def listen_groups(
-        self, group_markers: list[BaseEvent]
+        self, group_markers: list[BaseEvent], group_name: str = None
     ) -> Callable[[BaseEvent], BaseEvent]:
+        assert all(
+            [isinstance(m, BaseEvent) for m in group_markers]
+        ), "group_markers must be a list of BaseEvent"
+        group_markers = list(set(group_markers))
+
         def decorator(func: BaseEvent) -> BaseEvent:
             if not isinstance(func, BaseEvent):
                 func = self.make_event(func)
-            assert all(
-                [isinstance(m, BaseEvent) for m in group_markers]
-            ), "group_markers must be a list of BaseEvent"
-            func.parent_groups.append(group_markers)
+            this_group_name = group_name or f"{len(func.parent_groups)}"
+            func.parent_groups.append((this_group_name, group_markers))
             return func
 
         return decorator

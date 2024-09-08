@@ -75,6 +75,37 @@ async def test_multi_recv():
 
 
 @pytest.mark.asyncio
+async def test_multi_groups():
+    @default_drive.make_event
+    async def a0(event: EventInput):
+        return 0
+
+    @default_drive.make_event
+    async def a1(event: EventInput):
+        return 0
+
+    @default_drive.listen_groups([a0, a1])
+    @default_drive.listen_groups([a0, a1])
+    @default_drive.listen_groups([a0, a1])
+    async def a(event: EventInput):
+        return 1
+
+    @default_drive.make_event
+    async def b(event: EventInput):
+        return 2
+
+    @default_drive.listen_groups([a])
+    @default_drive.listen_groups([b, a])
+    async def c(event: EventInput):
+        return 3
+
+    print(c.debug_string())
+    assert await a.solo_run(None) == 1
+    assert await b.solo_run(None) == 2
+    assert await c.solo_run(None) == 3
+
+
+@pytest.mark.asyncio
 async def test_loop():
     @default_drive.make_event
     async def a(event: EventInput):

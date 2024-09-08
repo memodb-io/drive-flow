@@ -15,13 +15,15 @@ EventFunction = Callable[[EventInput], Awaitable[Any]]
 
 
 class BaseEvent:
-    parent_groups: list[list["BaseEvent"]]
+    parent_groups: list[tuple[str, list["BaseEvent"]]]
     func_inst: Callable
     id: str
     repr_name: str
 
     def __init__(
-        self, func_inst: Callable, parent_groups: list[list["BaseEvent"]] = None
+        self,
+        func_inst: Callable,
+        parent_groups: list[list["BaseEvent"]] = None,
     ):
         self.parent_groups = parent_groups or []
         self.func_inst = func_inst
@@ -31,21 +33,22 @@ class BaseEvent:
     def debug_string(self, exclude_events: set[str] = None) -> str:
         exclude_events = exclude_events or set([self.id])
 
-        def format_parents(parents: list[list["BaseEvent"]], indent=""):
+        def format_parents(parents: list[tuple[str, list["BaseEvent"]]], indent=""):
             result = []
-            for i, parent_group in enumerate(parents):
+            for i, (group_name, parent_group) in enumerate(parents):
                 is_last_group = i == len(parents) - 1
-                group_prefix = "└─" if is_last_group else "├─"
-                result.append(indent + group_prefix + " <listen>")
+                group_prefix = "└─ " if is_last_group else "├─ "
+                result.append(indent + group_prefix + f"<{group_name}>")
                 for j, parent in enumerate(parent_group):
                     root_events = copy(exclude_events)
                     is_last = j == len(parent_group) - 1
                     child_indent = indent + ("    " if is_last_group else "│   ")
+                    inter_indent = "   " if is_last else "│  "
                     prefix = "└─ " if is_last else "├─ "
 
                     if parent.id in root_events:
                         result.append(
-                            f"{child_indent}{prefix}<loop to {parent.repr_name}>"
+                            f"{child_indent}{prefix}{parent.repr_name} <loop>"
                         )
                         continue
                     root_events.add(parent.id)
@@ -55,7 +58,7 @@ class BaseEvent:
                     parent_debug = [p for p in parent_debug if p.strip()]
                     result.append(f"{child_indent}{prefix}{parent.repr_name}")
                     for line in parent_debug[1:]:
-                        result.append(f"{child_indent}   {line}")
+                        result.append(f"{child_indent}{inter_indent}{line}")
             return "\n".join(result)
 
         parents_str = format_parents(self.parent_groups)
