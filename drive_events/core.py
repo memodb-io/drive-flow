@@ -1,5 +1,5 @@
 import inspect
-from typing import Callable
+from typing import Callable, Optional
 from .types import BaseEvent, EventFunction, EventGroup
 from .utils import logger
 
@@ -14,7 +14,7 @@ class EventEngineCls:
         self.__event_maps = {}
 
     def listen_groups(
-        self, group_markers: list[BaseEvent], group_name: str = None
+        self, group_markers: list[BaseEvent], group_name: Optional[str] = None
     ) -> Callable[[BaseEvent], BaseEvent]:
         assert all(
             [isinstance(m, BaseEvent) for m in group_markers]

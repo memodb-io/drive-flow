@@ -2,6 +2,8 @@ import logging
 import asyncio
 import inspect
 import hashlib
+from typing import Callable, Union
+from types import MethodType
 
 logger = logging.getLogger("drive-events")
 
@@ -15,7 +17,7 @@ def always_get_a_event_loop():
         return loop
 
 
-def function_or_method_to_repr(func_or_method: callable) -> str:
+def function_or_method_to_repr(func_or_method: Callable) -> str:
     is_method = inspect.ismethod(func_or_method)
     is_function = inspect.isfunction(func_or_method)
     if not is_method and not is_function:
@@ -31,7 +33,7 @@ def function_or_method_to_repr(func_or_method: callable) -> str:
         return f"{module}.l_{line_number}.{name}".strip()
 
 
-def function_or_method_to_string(func_or_method: callable) -> str:
+def function_or_method_to_string(func_or_method: Callable) -> str:
     is_method = inspect.ismethod(func_or_method)
     is_function = inspect.isfunction(func_or_method)
     if not is_method and not is_function:

@@ -1,7 +1,7 @@
 from copy import copy
 from enum import Enum
 from dataclasses import dataclass
-from typing import Callable, Any, Awaitable
+from typing import Callable, Any, Awaitable, Optional
 
 from .utils import (
     string_to_md5_hash,
@@ -37,14 +37,14 @@ class BaseEvent:
     def __init__(
         self,
         func_inst: EventFunction,
-        parent_groups: dict[str, EventGroup] = None,
+        parent_groups: Optional[dict[str, EventGroup]] = None,
     ):
         self.parent_groups = parent_groups or {}
         self.func_inst = func_inst
         self.id = string_to_md5_hash(function_or_method_to_string(self.func_inst))
         self.repr_name = function_or_method_to_repr(self.func_inst)
 
-    def debug_string(self, exclude_events: set[str] = None) -> str:
+    def debug_string(self, exclude_events: Optional[set[str]] = None) -> str:
         exclude_events = exclude_events or set([self.id])
         parents_str = format_parents(self.parent_groups, exclude_events=exclude_events)
         return f"{self.repr_name}\n{parents_str}"
