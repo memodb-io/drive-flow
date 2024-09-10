@@ -1,20 +1,15 @@
+import uuid
 import logging
 import asyncio
 import inspect
 import hashlib
-from typing import Callable, Union
-from types import MethodType
+from typing import Callable
 
 logger = logging.getLogger("drive-events")
 
 
-def always_get_a_event_loop():
-    try:
-        return asyncio.get_event_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        return loop
+def generate_uuid() -> str:
+    return str(uuid.uuid4())
 
 
 def function_or_method_to_repr(func_or_method: Callable) -> str:

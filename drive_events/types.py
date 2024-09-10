@@ -1,7 +1,8 @@
 from copy import copy
 from enum import Enum
-from dataclasses import dataclass
-from typing import Callable, Any, Awaitable, Optional
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Callable, Any, Awaitable, Optional, TypeVar, Generic
 
 from .utils import (
     string_to_md5_hash,
@@ -9,23 +10,47 @@ from .utils import (
     function_or_method_to_repr,
 )
 
-GroupEventReturns = dict["BaseEvent", Any]
-EventInput = tuple[str, GroupEventReturns]
 
-EventFunction = Callable[[EventInput], Awaitable[Any]]
+class ReturnBehavior(Enum):
+    DISPATCH = "dispatch"
+    GOTO = "goto"
+    ABORT = "abort"
+
+
+class TaskStatus(Enum):
+    RUNNING = "running"
+    SUCCESS = "success"
+    FAILURE = "failure"
+    PENDING = "pending"
+
+
+GroupEventReturns = dict[str, Any]
+
+
+@dataclass
+class EventGroupInput:
+    group_name: str
+    results: GroupEventReturns
+    behavior: ReturnBehavior = ReturnBehavior.DISPATCH
+
+
+@dataclass
+class EventInput(EventGroupInput):
+    pass
+
+
+# (group_event_results, global ctx set by user) -> result
+EventFunction = Callable[[Optional[EventInput], Optional[Any]], Awaitable[Any]]
 
 
 @dataclass
 class EventGroup:
     name: str
-    events: list["BaseEvent"]
-
-    def __post_init__(self):
-        self.events = sorted(self.events, key=lambda e: e.id)
-        self._hash = string_to_md5_hash(":".join([e.id for e in self.events]))
+    events_hash: str
+    events: dict[str, "BaseEvent"]
 
     def hash(self) -> str:
-        return self._hash
+        return self.events_hash
 
 
 class BaseEvent:
@@ -43,6 +68,7 @@ class BaseEvent:
         self.func_inst = func_inst
         self.id = string_to_md5_hash(function_or_method_to_string(self.func_inst))
         self.repr_name = function_or_method_to_repr(self.func_inst)
+        self.meta = {"func_body": function_or_method_to_string(self.func_inst)}
 
     def debug_string(self, exclude_events: Optional[set[str]] = None) -> str:
         exclude_events = exclude_events or set([self.id])
@@ -52,14 +78,18 @@ class BaseEvent:
     def __repr__(self) -> str:
         return f"Node(source={self.repr_name})"
 
-    async def solo_run(self, event_input: EventInput) -> Awaitable[Any]:
-        return await self.func_inst(event_input)
+    async def solo_run(
+        self, event_input: EventInput, global_ctx: Any = None
+    ) -> Awaitable[Any]:
+        return await self.func_inst(event_input, global_ctx)
 
 
-class ReturnBehavior(Enum):
-    DISPATCH = "dispatch"
-    GOTO = "goto"
-    ABORT = "abort"
+@dataclass
+class Task:
+    task_id: str
+    status: TaskStatus = TaskStatus.PENDING
+    created_at: datetime = field(default_factory=datetime.now)
+    upated_at: datetime = field(default_factory=datetime.now)
 
 
 def format_parents(parents: dict[str, EventGroup], exclude_events: set[str], indent=""):
@@ -70,7 +100,7 @@ def format_parents(parents: dict[str, EventGroup], exclude_events: set[str], ind
         is_last_group = i == len(parents) - 1
         group_prefix = "└─ " if is_last_group else "├─ "
         result.append(indent + group_prefix + f"<{parent_group.name}>")
-        for j, parent in enumerate(parent_group.events):
+        for j, parent in enumerate(parent_group.events.values()):
             root_events = copy(exclude_events)
             is_last = j == len(parent_group.events) - 1
             child_indent = indent + ("    " if is_last_group else "│   ")

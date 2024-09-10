@@ -23,9 +23,9 @@ def test_node_debug_print():
         return 2
 
     n1 = BaseEvent(mock_a)
-    g1 = EventGroup("1", [n1])
+    g1 = EventGroup("1", "hash-xxxxx", {n1.id: n1})
     n2 = BaseEvent(mock_a, parent_groups={g1.hash(): g1})
-    g2 = EventGroup("2", [n1, n2])
+    g2 = EventGroup("2", "hash-yyyy", {n1.id: n1, n2.id: n2})
     n3 = BaseEvent(mock_b, parent_groups={g1.hash(): g1, g2.hash(): g2})
 
     print(n1, n1.debug_string())
