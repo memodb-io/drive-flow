@@ -5,6 +5,27 @@ from drive_events.types import BaseEvent
 
 
 @pytest.mark.asyncio
+async def test_non_async_func():
+    with pytest.raises(AssertionError):
+
+        @default_drive.make_event
+        def a(event: EventInput, global_ctx):
+            return 1
+
+
+@pytest.mark.asyncio
+async def test_non_async_listen_groups():
+    async def a(event: EventInput, global_ctx):
+        return 1
+
+    with pytest.raises(AssertionError):
+
+        @default_drive.listen_groups([a])
+        async def b(event: EventInput, global_ctx):
+            return 1
+
+
+@pytest.mark.asyncio
 async def test_set_and_reset():
     @default_drive.make_event
     async def a(event: EventInput, global_ctx):

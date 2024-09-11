@@ -9,6 +9,10 @@ from .utils import (
 )
 
 
+def goto_events(group_markers: list[BaseEvent], any_return: Any):
+    pass
+
+
 class EventEngineCls:
     def __init__(self, name="default", broker: Optional[BaseBroker] = None):
         self.name = name
