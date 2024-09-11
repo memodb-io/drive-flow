@@ -157,7 +157,7 @@ asyncio.run(default_drive.invoke_event(start))
 <summary> code snippet for abort</summary>
 
 ```python
-from drive_events.dynamic import goto_events, abort_this
+from drive_events.dynamic import abort_this
 
 @default_drive.make_event
 async def a(event: EventInput, global_ctx):
@@ -176,8 +176,10 @@ asyncio.run(default_drive.invoke_event(a))
 <summary> code snippet for goto</summary>
 
 ```python
-call_a_count = 0
+from drive_events.types import ReturnBehavior
+from drive_events.dynamic import goto_events, abort_this
 
+call_a_count = 0
 @default_drive.make_event
 async def a(event: EventInput, global_ctx):
     global call_a_count
