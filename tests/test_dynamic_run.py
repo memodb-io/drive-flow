@@ -20,7 +20,7 @@ async def test_abort():
         assert global_ctx == {"test_ctx": 1}
         return abort_this()
 
-    @default_drive.listen_groups([a])
+    @default_drive.listen_group([a])
     async def b(event: EventInput, global_ctx):
         assert False, "should not be called"
 
@@ -47,11 +47,11 @@ async def test_goto():
         call_a_count += 1
         return 1
 
-    @default_drive.listen_groups([a])
+    @default_drive.listen_group([a])
     async def b(event: EventInput, global_ctx):
         return goto_events([a], 2)
 
-    @default_drive.listen_groups([b])
+    @default_drive.listen_group([b])
     async def c(event: EventInput, global_ctx):
         assert False, "should not be called"
 

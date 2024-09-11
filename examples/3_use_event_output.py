@@ -8,17 +8,17 @@ async def start(event: EventInput, global_ctx):
     print("start")
 
 
-@default_drive.listen_groups([start])
+@default_drive.listen_group([start])
 async def hello(event: EventInput, global_ctx):
     return 1
 
 
-@default_drive.listen_groups([start])
+@default_drive.listen_group([start])
 async def world(event: EventInput, global_ctx):
     return 2
 
 
-@default_drive.listen_groups([hello, world])
+@default_drive.listen_group([hello, world])
 async def adding(event: EventInput, global_ctx):
     results = event.results
     print("adding", hello, world)

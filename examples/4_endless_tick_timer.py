@@ -10,7 +10,7 @@ async def tick(event: EventInput, global_ctx):
     return "tick"
 
 
-@default_drive.listen_groups([tick])
+@default_drive.listen_group([tick])
 async def tok(event: EventInput, global_ctx):
     print(datetime.now(), f"{event.results[tick.id]}, then tok")
     return goto_events([tick])

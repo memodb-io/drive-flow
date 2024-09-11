@@ -54,7 +54,7 @@ from drive_events import EventInput, default_drive
 async def hello(event: EventInput, global_ctx):
     print("hello")
 
-@default_drive.listen_groups([hello])
+@default_drive.listen_group([hello])
 async def world(event: EventInput, global_ctx):
     print("world")
 
@@ -68,7 +68,7 @@ To make an event function, there are few elements:
 * Input Signature: must be `(event: EventInput, global_ctx)`
   * `EventInput` is the returns of the listening groups.
   * `global_ctx` is set by you when invoking events, it can be anything and default to `None`
-* Make sure you decorate the function with `@default_drive.make_event` or `@default_drive.listen_groups([EVENT,...])`
+* Make sure you decorate the function with `@default_drive.make_event` or `@default_drive.listen_group([EVENT,...])`
 
 Then, run your workflow from any event:
 
@@ -92,17 +92,17 @@ Check out [examples](./examples) for more user cases!
 async def start(event: EventInput, global_ctx):
     print("start")
     
-@default_drive.listen_groups([start])
+@default_drive.listen_group([start])
 async def hello(event: EventInput, global_ctx):
     return 1
 
 
-@default_drive.listen_groups([start])
+@default_drive.listen_group([start])
 async def world(event: EventInput, global_ctx):
     return 2
 
 
-@default_drive.listen_groups([hello, world])
+@default_drive.listen_group([hello, world])
 async def adding(event: EventInput, global_ctx):
     results = event.results
     print("adding", hello, world)
@@ -128,14 +128,14 @@ assert results[adding.id] == 3
 async def start(event: EventInput, global_ctx):
     print("start")
 
-@default_drive.listen_groups([start])
+@default_drive.listen_group([start])
 async def hello(event: EventInput, global_ctx):
     print(datetime.now(), "hello")
     await asyncio.sleep(0.2)
     print(datetime.now(), "hello done")
 
 
-@default_drive.listen_groups([start])
+@default_drive.listen_group([start])
 async def world(event: EventInput, global_ctx):
     print(datetime.now(), "world")
     await asyncio.sleep(0.2)
@@ -163,7 +163,7 @@ from drive_events.dynamic import abort_this
 async def a(event: EventInput, global_ctx):
     return abort_this()
 
-@default_drive.listen_groups([a])
+@default_drive.listen_group([a])
 async def b(event: EventInput, global_ctx):
     assert False, "should not be called"
     
@@ -192,11 +192,11 @@ async def a(event: EventInput, global_ctx):
     call_a_count += 1
     return 1
 
-@default_drive.listen_groups([a])
+@default_drive.listen_group([a])
 async def b(event: EventInput, global_ctx):
     return goto_events([a], 2)
 
-@default_drive.listen_groups([b])
+@default_drive.listen_group([b])
 async def c(event: EventInput, global_ctx):
     assert False, "should not be called"
     

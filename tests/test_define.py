@@ -20,7 +20,7 @@ async def test_non_async_listen_groups():
 
     with pytest.raises(AssertionError):
 
-        @default_drive.listen_groups([a])
+        @default_drive.listen_group([a])
         async def b(event: EventInput, global_ctx):
             return 1
 
@@ -31,7 +31,7 @@ async def test_set_and_reset():
     async def a(event: EventInput, global_ctx):
         return 1
 
-    @default_drive.listen_groups([a])
+    @default_drive.listen_group([a])
     async def b(event: EventInput, global_ctx):
         return 2
 
@@ -39,7 +39,7 @@ async def test_set_and_reset():
 
     with pytest.raises(AssertionError):
 
-        @default_drive.listen_groups([a])
+        @default_drive.listen_group([a])
         async def b(event: EventInput, global_ctx):
             return 2
 
@@ -69,11 +69,11 @@ async def test_order():
     async def a(event: EventInput, global_ctx):
         return 1
 
-    @default_drive.listen_groups([a])
+    @default_drive.listen_group([a])
     async def b(event: EventInput, global_ctx):
         return 2
 
-    @default_drive.listen_groups([b])
+    @default_drive.listen_group([b])
     async def c(event: EventInput, global_ctx):
         return 3
 
@@ -92,11 +92,11 @@ async def test_multi_send():
     async def a(event: EventInput, global_ctx):
         return 1
 
-    @default_drive.listen_groups([a])
+    @default_drive.listen_group([a])
     async def b(event: EventInput, global_ctx):
         return 2
 
-    @default_drive.listen_groups([a])
+    @default_drive.listen_group([a])
     async def c(event: EventInput, global_ctx):
         return 3
 
@@ -114,7 +114,7 @@ async def test_multi_recv():
     async def a(event: EventInput, global_ctx):
         return 1
 
-    @default_drive.listen_groups([a])
+    @default_drive.listen_group([a])
     async def a1(event: EventInput, global_ctx):
         return 1
 
@@ -122,7 +122,7 @@ async def test_multi_recv():
     async def b(event: EventInput, global_ctx):
         return 2
 
-    @default_drive.listen_groups([a1, b])
+    @default_drive.listen_group([a1, b])
     async def c(event: EventInput, global_ctx):
         return 3
 
@@ -144,9 +144,9 @@ async def test_multi_groups():
     async def a1(event: EventInput, global_ctx):
         return 0
 
-    @default_drive.listen_groups([a0, a1])
-    @default_drive.listen_groups([a0, a1])
-    @default_drive.listen_groups([a0, a1])
+    @default_drive.listen_group([a0, a1])
+    @default_drive.listen_group([a0, a1])
+    @default_drive.listen_group([a0, a1])
     async def a(event: EventInput, global_ctx):
         return 1
 
@@ -159,13 +159,13 @@ async def test_loop():
     async def a(event: EventInput, global_ctx):
         return 1
 
-    @default_drive.listen_groups([a])
+    @default_drive.listen_group([a])
     async def b(event: EventInput, global_ctx):
         return 2
 
-    a = default_drive.listen_groups([b])(a)
+    a = default_drive.listen_group([b])(a)
 
-    @default_drive.listen_groups([a, b])
+    @default_drive.listen_group([a, b])
     async def c(event: EventInput, global_ctx):
         return 3
 

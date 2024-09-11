@@ -7,7 +7,7 @@ async def hello(event: EventInput, global_ctx):
     print("hello")
 
 
-@default_drive.listen_groups([hello])
+@default_drive.listen_group([hello])
 async def world(event: EventInput, global_ctx):
     print("world")
 

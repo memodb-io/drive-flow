@@ -40,7 +40,7 @@ class EventEngineCls:
         self.__event_maps[event.id] = event
         return event
 
-    def listen_groups(
+    def listen_group(
         self, group_markers: list[BaseEvent], group_name: Optional[str] = None
     ) -> Callable[[BaseEvent], BaseEvent]:
         assert all(

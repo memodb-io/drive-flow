@@ -8,14 +8,14 @@ async def start(event: EventInput, global_ctx):
     print("start")
 
 
-@default_drive.listen_groups([start])
+@default_drive.listen_group([start])
 async def hello(event: EventInput, global_ctx):
     print(datetime.now(), "hello")
     await asyncio.sleep(0.2)
     print(datetime.now(), "hello done")
 
 
-@default_drive.listen_groups([start])
+@default_drive.listen_group([start])
 async def world(event: EventInput, global_ctx):
     print(datetime.now(), "world")
     await asyncio.sleep(0.2)
