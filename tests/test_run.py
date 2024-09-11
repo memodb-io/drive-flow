@@ -1,6 +1,6 @@
 import pytest
-from drive_events import default_drive, EventInput
-from drive_events.types import ReturnBehavior
+from drive_flow import default_drive, EventInput
+from drive_flow.types import ReturnBehavior
 
 
 class DeliberateExcepion(Exception):

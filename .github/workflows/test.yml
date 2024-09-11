@@ -43,7 +43,7 @@ jobs:
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
       - name: Build and Test
         run: |
-          python -m pytest -o log_cli=true -o log_cli_level="INFO" --cov=drive_events --cov-report=xml -v ./
+          python -m pytest -o log_cli=true -o log_cli_level="INFO" --cov=drive_flow --cov-report=xml -v ./
       - name: Check codecov file
         id: check_files
         uses: andstor/file-existence-action@v1

@@ -1,15 +1,15 @@
 <div align="center">
-  <h1>drive-events</h1>
+  <h1>drive-flow</h1>
   <p><strong>Build event-driven workflows with python async functions</strong></p>
   <p>
-    <a href="https://pypi.org/project/drive-events/" > 
+    <a href="https://pypi.org/project/drive-flow/" > 
     	<img src="https://img.shields.io/badge/python->=3.9.11-blue">
     </a>
-    <a href="https://codecov.io/github/memodb-io/drive-events" > 
-     <img src="https://codecov.io/github/memodb-io/drive-events/graph/badge.svg?token=T1Q1JB1NGM"/> 
+    <a href="https://codecov.io/github/memodb-io/drive-flow" > 
+     <img src="https://codecov.io/github/memodb-io/drive-flow/graph/badge.svg?token=T1Q1JB1NGM"/> 
 	 </a>
-    <a href="https://pypi.org/project/drive-events/">
-      <img src="https://img.shields.io/pypi/v/drive-events.svg">
+    <a href="https://pypi.org/project/drive-flow/">
+      <img src="https://img.shields.io/pypi/v/drive-flow.svg">
     </a>
   </p>
 </div>
@@ -28,14 +28,14 @@
 **Install from PyPi**
 
 ```shell
-pip install drive-events
+pip install drive-flow
 ```
 
 **Install from source**
 
 ```shell
 # clone this repo first
-cd drive-events
+cd drive-flow
 pip install -e .
 ```
 
@@ -47,7 +47,7 @@ A hello world example:
 
 ```python
 import asyncio
-from drive_events import EventInput, default_drive
+from drive_flow import EventInput, default_drive
 
 
 @default_drive.make_event
@@ -82,7 +82,7 @@ Check out [examples](./examples) for more user cases!
 
 ### Multi-Recv
 
-`drive_events` allow an event to be triggered only when a group of events are produced:
+`drive_flow` allow an event to be triggered only when a group of events are produced:
 
 <details>
 <summary> code snippet</summary>
@@ -118,7 +118,7 @@ assert results[adding.id] == 3
 
 ### Parallel
 
-`drive_events` is perfect for workflows that have many network IO that can be awaited in parallel. If two events are listened to the same group of events, then they will be triggered at the same time:
+`drive_flow` is perfect for workflows that have many network IO that can be awaited in parallel. If two events are listened to the same group of events, then they will be triggered at the same time:
 
 <details>
 <summary> code snippet</summary>
@@ -151,13 +151,13 @@ asyncio.run(default_drive.invoke_event(start))
 
 ### Dynamic
 
-`drive_events` is dynamic. You can use `goto` and `abort` to change the workflow at runtime:
+`drive_flow` is dynamic. You can use `goto` and `abort` to change the workflow at runtime:
 
 <details>
 <summary> code snippet for abort</summary>
 
 ```python
-from drive_events.dynamic import abort_this
+from drive_flow.dynamic import abort_this
 
 @default_drive.make_event
 async def a(event: EventInput, global_ctx):
@@ -176,8 +176,8 @@ asyncio.run(default_drive.invoke_event(a))
 <summary> code snippet for goto</summary>
 
 ```python
-from drive_events.types import ReturnBehavior
-from drive_events.dynamic import goto_events, abort_this
+from drive_flow.types import ReturnBehavior
+from drive_flow.dynamic import goto_events, abort_this
 
 call_a_count = 0
 @default_drive.make_event

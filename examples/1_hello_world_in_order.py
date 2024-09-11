@@ -1,5 +1,5 @@
 import asyncio
-from drive_events import EventInput, default_drive
+from drive_flow import EventInput, default_drive
 
 
 @default_drive.make_event

@@ -6,7 +6,7 @@ with open("readme.md", "r") as fh:
 
 vars2find = ["__author__", "__version__", "__url__"]
 vars2readme = {}
-with open("./drive_events/__init__.py") as f:
+with open("./drive_flow/__init__.py") as f:
     for line in f.readlines():
         for v in vars2find:
             if line.startswith(v):
@@ -21,14 +21,14 @@ with open("./requirements.txt") as f:
         deps.append(line.strip())
 
 setuptools.setup(
-    name="drive-events",
+    name="drive-flow",
     url=vars2readme["__url__"],
     version=vars2readme["__version__"],
     author=vars2readme["__author__"],
     description="Build event-driven workflows with python functions",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    packages=["drive_events"],
+    packages=["drive_flow"],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

@@ -5,7 +5,7 @@ import inspect
 import hashlib
 from typing import Callable
 
-logger = logging.getLogger("drive-events")
+logger = logging.getLogger("drive-flow")
 
 
 def generate_uuid() -> str:

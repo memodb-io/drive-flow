@@ -1,7 +1,7 @@
 import pytest
-from drive_events import default_drive, EventInput
-from drive_events.types import ReturnBehavior, _SpecialEventReturn
-from drive_events.dynamic import goto_events, abort_this
+from drive_flow import default_drive, EventInput
+from drive_flow.types import ReturnBehavior, _SpecialEventReturn
+from drive_flow.dynamic import goto_events, abort_this
 
 
 class DeliberateExcepion(Exception):
