@@ -52,7 +52,6 @@ from drive_events import EventInput, default_drive
 async def hello(event: EventInput, global_ctx):
     print("hello")
 
-
 @default_drive.listen_groups([hello])
 async def world(event: EventInput, global_ctx):
     print("world")
@@ -76,6 +75,130 @@ await default_drive.invoke_event(EVENT, EVENT_INPUT, GLOBAL_CTX)
 ```
 
 Check out [examples](./examples) for more user cases!
+
+### Multi-Recv
+
+`drive_events` allow an event to be triggered only when a group of events are produced:
+
+<details>
+<summary> code snippet</summary>
+
+```python
+@default_drive.make_event
+async def start(event: EventInput, global_ctx):
+    print("start")
+    
+@default_drive.listen_groups([start])
+async def hello(event: EventInput, global_ctx):
+    return 1
+
+
+@default_drive.listen_groups([start])
+async def world(event: EventInput, global_ctx):
+    return 2
+
+
+@default_drive.listen_groups([hello, world])
+async def adding(event: EventInput, global_ctx):
+    results = event.results
+    print("adding", hello, world)
+    return results[hello.id] + results[world.id]
+
+
+results = asyncio.run(default_drive.invoke_event(start))
+assert results[adding.id] == 3
+```
+</details>
+
+
+### Parallel
+
+`drive_events` is perfect for workflows that have many network IO that can be awaited in parallel. If two events are listened to the same group of events, then they will be triggered at the same time:
+
+<details>
+<summary> code snippet</summary>
+
+```python
+@default_drive.make_event
+async def start(event: EventInput, global_ctx):
+    print("start")
+
+@default_drive.listen_groups([start])
+async def hello(event: EventInput, global_ctx):
+    print(datetime.now(), "hello")
+    await asyncio.sleep(0.2)
+    print(datetime.now(), "hello done")
+
+
+@default_drive.listen_groups([start])
+async def world(event: EventInput, global_ctx):
+    print(datetime.now(), "world")
+    await asyncio.sleep(0.2)
+    print(datetime.now(), "world done")
+
+
+asyncio.run(default_drive.invoke_event(start))
+```
+
+</details>
+
+
+
+### Dynamic
+
+`drive_events` is dynamic. You can use `goto` and `abort` to change the workflow at runtime:
+
+<details>
+<summary> code snippet for abort</summary>
+
+```python
+from drive_events.dynamic import goto_events, abort_this
+
+@default_drive.make_event
+async def a(event: EventInput, global_ctx):
+    return abort_this()
+
+@default_drive.listen_groups([a])
+async def b(event: EventInput, global_ctx):
+    assert False, "should not be called"
+    
+asyncio.run(default_drive.invoke_event(a))
+```
+
+</details>
+
+<details>
+<summary> code snippet for goto</summary>
+
+```python
+call_a_count = 0
+
+@default_drive.make_event
+async def a(event: EventInput, global_ctx):
+    global call_a_count
+    if call_a_count == 0:
+        assert event is None
+    elif call_a_count == 1:
+        assert event.behavior == ReturnBehavior.GOTO
+        assert event.results == {b.id: 2}
+        return abort_this()
+    call_a_count += 1
+    return 1
+
+@default_drive.listen_groups([a])
+async def b(event: EventInput, global_ctx):
+    return goto_events([a], 2)
+
+@default_drive.listen_groups([b])
+async def c(event: EventInput, global_ctx):
+    assert False, "should not be called"
+    
+asyncio.run(default_drive.invoke_event(a))
+```
+
+</details>
+
+
 
 
 

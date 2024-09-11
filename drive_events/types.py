@@ -2,7 +2,7 @@ from copy import copy
 from enum import Enum
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Callable, Any, Awaitable, Optional, TypeVar, Generic
+from typing import Any, Awaitable, Optional, Union, Callable
 
 from .utils import (
     string_to_md5_hash,
@@ -39,8 +39,22 @@ class EventInput(EventGroupInput):
     pass
 
 
+@dataclass
+class _SpecialEventReturn:
+    behavior: ReturnBehavior
+    returns: Any
+
+    def __post_init__(self):
+        if not isinstance(self.behavior, ReturnBehavior):
+            raise TypeError(
+                f"behavior must be a ReturnBehavior, not {type(self.behavior)}"
+            )
+
+
 # (group_event_results, global ctx set by user) -> result
-EventFunction = Callable[[Optional[EventInput], Optional[Any]], Awaitable[Any]]
+EventFunction = Callable[
+    [Optional[EventInput], Optional[Any]], Awaitable[Union[Any, _SpecialEventReturn]]
+]
 
 
 @dataclass

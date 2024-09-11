@@ -1,16 +1,19 @@
 import inspect
 import asyncio
 from typing import Callable, Optional, Union, Any, Tuple
-from .types import BaseEvent, EventFunction, EventGroup, EventInput
+from .types import (
+    BaseEvent,
+    EventFunction,
+    EventGroup,
+    EventInput,
+    _SpecialEventReturn,
+    ReturnBehavior,
+)
 from .broker import BaseBroker
 from .utils import (
     logger,
     string_to_md5_hash,
 )
-
-
-def goto_events(group_markers: list[BaseEvent], any_return: Any):
-    pass
 
 
 class EventEngineCls:
@@ -22,6 +25,9 @@ class EventEngineCls:
 
     def reset(self):
         self.__event_maps = {}
+
+    def get_event_from_id(self, event_id: str) -> Optional[BaseEvent]:
+        return self.__event_maps.get(event_id)
 
     def make_event(self, func: Union[EventFunction, BaseEvent]) -> BaseEvent:
         if isinstance(func, BaseEvent):
@@ -80,23 +86,38 @@ class EventEngineCls:
         this_run_ctx = {}
         queue: list[Tuple[BaseEvent, EventInput]] = [(event, event_input)]
 
-        async def run_event(current_event, current_event_input):
+        async def run_event(current_event: BaseEvent, current_event_input: Any):
             result = await current_event.solo_run(current_event_input, global_ctx)
             this_run_ctx[current_event.id] = result
-            for cand_event in self.__event_maps.values():
-                cand_event_parents = cand_event.parent_groups
-                for group_hash, group in cand_event_parents.items():
-                    if current_event.id in group.events and all(
-                        [event_id in this_run_ctx for event_id in group.events]
-                    ):
-                        this_group_returns = {
-                            event_id: this_run_ctx[event_id]
-                            for event_id in group.events
-                        }
-                        build_input = EventInput(
-                            group_name=group.name, results=this_group_returns
+            if isinstance(result, _SpecialEventReturn):
+                if result.behavior == ReturnBehavior.GOTO:
+                    group_markers, any_return = result.returns
+                    for group_marker in group_markers:
+                        this_group_returns = {current_event.id: any_return}
+                        build_input_goto = EventInput(
+                            group_name="$goto",
+                            results=this_group_returns,
+                            behavior=ReturnBehavior.GOTO,
                         )
-                        queue.append((cand_event, build_input))
+                        queue.append((group_marker, build_input_goto))
+                elif result.behavior == ReturnBehavior.ABORT:
+                    return
+            else:
+                # dispath to events who listen
+                for cand_event in self.__event_maps.values():
+                    cand_event_parents = cand_event.parent_groups
+                    for group_hash, group in cand_event_parents.items():
+                        if current_event.id in group.events and all(
+                            [event_id in this_run_ctx for event_id in group.events]
+                        ):
+                            this_group_returns = {
+                                event_id: this_run_ctx[event_id]
+                                for event_id in group.events
+                            }
+                            build_input = EventInput(
+                                group_name=group.name, results=this_group_returns
+                            )
+                            queue.append((cand_event, build_input))
 
         while len(queue):
             this_batch_events = queue[:max_async_events] if max_async_events else queue

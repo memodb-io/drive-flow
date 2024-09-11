@@ -55,6 +55,15 @@ async def test_duplicate_decorator():
 
 
 @pytest.mark.asyncio
+async def test_correct_get_id():
+    @default_drive.make_event
+    async def a(event: EventInput, global_ctx):
+        return 1
+
+    assert default_drive.get_event_from_id(a.id) == a
+
+
+@pytest.mark.asyncio
 async def test_order():
     @default_drive.make_event
     async def a(event: EventInput, global_ctx):
