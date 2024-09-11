@@ -15,9 +15,13 @@
 </div>
 
 
+🌬️ [Zero dependency](./requirements.txt). No trouble, no loss.
 
+🍰 With **intuitive decorators**, write your async workflow like a piece of cake. 
 
+🔄 Support dynamic dispatch(`goto`, `abort`). Create a **looping or if-else workflow with ease**. 
 
+🔜 **Fully asynchronous**. Events are always triggered at the same time if they listen to the same group!
 
 
 
