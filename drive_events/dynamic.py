@@ -6,7 +6,9 @@ from .types import (
 )
 
 
-def goto_events(group_markers: list[BaseEvent], any_return: Any) -> _SpecialEventReturn:
+def goto_events(
+    group_markers: list[BaseEvent], any_return: Any = None
+) -> _SpecialEventReturn:
     return _SpecialEventReturn(
         behavior=ReturnBehavior.GOTO, returns=(group_markers, any_return)
     )
