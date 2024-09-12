@@ -86,6 +86,33 @@ async def test_multi_recv():
 
 
 @pytest.mark.asyncio
+async def test_multi_recv_cancel():
+    @default_drive.make_event
+    async def start(event: EventInput, global_ctx):
+        return None
+
+    @default_drive.listen_group([start])
+    async def a(event: EventInput, global_ctx):
+        raise asyncio.CancelledError()
+        return 1
+
+    @default_drive.listen_group([start])
+    async def b(event: EventInput, global_ctx):
+        await asyncio.sleep(0.2)
+        return 2
+
+    @default_drive.listen_group([a, b])
+    async def c(event: EventInput, global_ctx):
+        assert event.group_name == "0"
+        assert event.behavior == ReturnBehavior.DISPATCH
+        assert event.results == {a.id: 1, b.id: 2}
+        return 3
+
+    with pytest.raises(asyncio.CancelledError):
+        result = await default_drive.invoke_event(start, None, {"test_ctx": 1})
+
+
+@pytest.mark.asyncio
 async def test_multi_groups():
     @default_drive.make_event
     async def a(event: EventInput, global_ctx):
