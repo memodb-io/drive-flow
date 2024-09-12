@@ -119,13 +119,26 @@ class EventEngineCls:
                             )
                             queue.append((cand_event, build_input))
 
-        while len(queue):
-            this_batch_events = queue[:max_async_events] if max_async_events else queue
-            queue = queue[max_async_events:] if max_async_events else []
-            logger.debug(
-                f"Running a turn with {len(this_batch_events)} event tasks, left {len(queue)} event tasks in queue"
-            )
-            await asyncio.gather(
-                *[run_event(*run_event_input) for run_event_input in this_batch_events]
-            )
+        tasks = set()
+        try:
+            while len(queue) or len(tasks):
+                this_batch_events = (
+                    queue[:max_async_events] if max_async_events else queue
+                )
+                queue = queue[max_async_events:] if max_async_events else []
+                new_tasks = {
+                    asyncio.create_task(run_event(*run_event_input))
+                    for run_event_input in this_batch_events
+                }
+                tasks.update(new_tasks)
+                done, tasks = await asyncio.wait(
+                    tasks, return_when=asyncio.FIRST_COMPLETED
+                )
+                for task in done:
+                    await task  # Handle any exceptions
+        except asyncio.CancelledError:
+            for task in tasks:
+                task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
+            raise
         return this_run_ctx

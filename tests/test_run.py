@@ -1,3 +1,4 @@
+import asyncio
 import pytest
 from drive_flow import default_drive, EventInput
 from drive_flow.types import ReturnBehavior
@@ -70,6 +71,7 @@ async def test_multi_recv():
 
     @default_drive.listen_group([start])
     async def b(event: EventInput, global_ctx):
+        await asyncio.sleep(0.2)
         return 2
 
     @default_drive.listen_group([a, b])
