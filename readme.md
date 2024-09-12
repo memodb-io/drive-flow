@@ -211,5 +211,7 @@ asyncio.run(default_drive.invoke_event(a))
 
 
 
+## TODO
 
-
+- [x] fix: streaming event executation
+- [ ] fix: an event never receive the listened events' results twice (de-duplication), unless the group is totally updated.
