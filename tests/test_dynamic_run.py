@@ -56,4 +56,5 @@ async def test_goto():
         assert False, "should not be called"
 
     result = await default_drive.invoke_event(a, None, {"test_ctx": 1})
+    assert call_a_count == 1
     print(result)

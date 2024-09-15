@@ -1,6 +1,6 @@
 import inspect
 import asyncio
-from typing import Callable, Optional, Union, Any, Tuple
+from typing import Callable, Optional, Union, Any, Tuple, Literal
 from .types import (
     BaseEvent,
     EventFunction,
@@ -8,12 +8,10 @@ from .types import (
     EventInput,
     _SpecialEventReturn,
     ReturnBehavior,
+    InvokeInterCache,
 )
 from .broker import BaseBroker
-from .utils import (
-    logger,
-    string_to_md5_hash,
-)
+from .utils import logger, string_to_md5_hash, generate_uuid
 
 
 class EventEngineCls:
@@ -41,7 +39,10 @@ class EventEngineCls:
         return event
 
     def listen_group(
-        self, group_markers: list[BaseEvent], group_name: Optional[str] = None
+        self,
+        group_markers: list[BaseEvent],
+        group_name: Optional[str] = None,
+        retrigger_type: Literal["all", "any"] = "all",
     ) -> Callable[[BaseEvent], BaseEvent]:
         assert all(
             [isinstance(m, BaseEvent) for m in group_markers]
@@ -60,7 +61,10 @@ class EventEngineCls:
             this_group_name = group_name or f"{len(func.parent_groups)}"
             this_group_hash = string_to_md5_hash(":".join(group_markers_in_dict.keys()))
             new_group = EventGroup(
-                this_group_name, this_group_hash, group_markers_in_dict
+                this_group_name,
+                this_group_hash,
+                group_markers_in_dict,
+                retrigger_type=retrigger_type,
             )
             self.__max_group_size = max(
                 self.__max_group_size, len(group_markers_in_dict)
@@ -83,12 +87,15 @@ class EventEngineCls:
         global_ctx: Any = None,
         max_async_events: Optional[int] = None,
     ) -> dict[str, Any]:
-        this_run_ctx = {}
+        this_run_ctx: dict[str, InvokeInterCache] = {}
         queue: list[Tuple[BaseEvent, EventInput]] = [(event, event_input)]
 
         async def run_event(current_event: BaseEvent, current_event_input: Any):
             result = await current_event.solo_run(current_event_input, global_ctx)
-            this_run_ctx[current_event.id] = result
+            this_run_ctx[current_event.id] = {
+                "result": result,
+                "already_sent_to_event_group": set(),
+            }
             if isinstance(result, _SpecialEventReturn):
                 if result.behavior == ReturnBehavior.GOTO:
                     group_markers, any_return = result.returns
@@ -107,13 +114,35 @@ class EventEngineCls:
                 for cand_event in self.__event_maps.values():
                     cand_event_parents = cand_event.parent_groups
                     for group_hash, group in cand_event_parents.items():
-                        if current_event.id in group.events and all(
+                        if_current_event_trigger = current_event.id in group.events
+                        if_ctx_cover = all(
                             [event_id in this_run_ctx for event_id in group.events]
-                        ):
+                        )
+                        event_group_id = f"{cand_event.id}:{group_hash}"
+                        if if_current_event_trigger and if_ctx_cover:
+                            if (
+                                any(
+                                    [
+                                        event_group_id
+                                        in this_run_ctx[event_id][
+                                            "already_sent_to_event_group"
+                                        ]
+                                        for event_id in group.events
+                                    ]
+                                )
+                                and group.retrigger_type == "all"
+                            ):
+                                # some events already dispatched to this event and group, skip
+                                logger.debug(f"Skip {cand_event} for {current_event}")
+                                continue
                             this_group_returns = {
-                                event_id: this_run_ctx[event_id]
+                                event_id: this_run_ctx[event_id]["result"]
                                 for event_id in group.events
                             }
+                            for event_id in group.events:
+                                this_run_ctx[event_id][
+                                    "already_sent_to_event_group"
+                                ].add(event_group_id)
                             build_input = EventInput(
                                 group_name=group.name, results=this_group_returns
                             )

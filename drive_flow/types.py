@@ -2,10 +2,11 @@ from copy import copy
 from enum import Enum
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Awaitable, Optional, Union, Callable
+from typing import Any, Awaitable, Optional, Union, Callable, TypedDict, Literal
 
 from .utils import (
     string_to_md5_hash,
+    generate_uuid,
     function_or_method_to_string,
     function_or_method_to_repr,
 )
@@ -24,6 +25,11 @@ class TaskStatus(Enum):
     PENDING = "pending"
 
 
+class InvokeInterCache(TypedDict):
+    result: Any
+    already_sent_to_event_group: set[str]
+
+
 GroupEventReturns = dict[str, Any]
 
 
@@ -36,7 +42,7 @@ class EventGroupInput:
 
 @dataclass
 class EventInput(EventGroupInput):
-    pass
+    task_id: str = field(default_factory=generate_uuid)
 
 
 @dataclass
@@ -62,6 +68,7 @@ class EventGroup:
     name: str
     events_hash: str
     events: dict[str, "BaseEvent"]
+    retrigger_type: Literal["all", "any"] = "all"
 
     def hash(self) -> str:
         return self.events_hash

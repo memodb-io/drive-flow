@@ -2,6 +2,7 @@ import asyncio
 import pytest
 from drive_flow import default_drive, EventInput
 from drive_flow.types import ReturnBehavior
+from drive_flow.dynamic import abort_this
 
 
 class DeliberateExcepion(Exception):
@@ -143,6 +144,7 @@ async def test_multi_groups():
 
     result = await default_drive.invoke_event(a, None, {"test_ctx": 1})
     print(result)
+    assert call_c_count == 2
 
 
 @pytest.mark.asyncio
@@ -174,3 +176,44 @@ async def test_loop():
 
     with pytest.raises(DeliberateExcepion):
         await default_drive.invoke_event(a, None, {"test_ctx": 1})
+    assert call_a_count == 1
+
+
+@pytest.mark.asyncio
+async def test_duplicate_events_not_send():
+    call_a_count = 0
+
+    @default_drive.make_event
+    async def start(event: EventInput, global_ctx):
+        pass
+
+    @default_drive.listen_group([start])
+    async def a(event: EventInput, global_ctx):
+        nonlocal call_a_count
+        if call_a_count <= 1:
+            pass
+        elif call_a_count == 2:
+            return abort_this()
+        call_a_count += 1
+        return 1
+
+    a = default_drive.listen_group([a])(a)  # self loop
+
+    @default_drive.listen_group([start])
+    async def b(event: EventInput, global_ctx):
+        return 2
+
+    call_c_count = 0
+
+    @default_drive.listen_group([a, b])
+    async def c(event: EventInput, global_ctx):
+        nonlocal call_c_count
+        assert call_c_count < 1, "c should only be called once"
+        call_c_count += 1
+        print("Call C")
+        return 3
+
+    r = await default_drive.invoke_event(start, None, {"test_ctx": 1})
+    assert call_a_count == 2
+    assert call_c_count == 1
+    print({default_drive.get_event_from_id(k).repr_name: v for k, v in r.items()})
