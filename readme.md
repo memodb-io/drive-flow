@@ -69,7 +69,9 @@ In this example, The return of `hello` event will trigger `world` event.
 
 To make an event function, there are few elements:
 
-* Input Signature: must be `(event: EventInput, global_ctx)`. `EventInput` is the returns of the listening groups. `global_ctx` is set by you when invoking events, it can be anything and default to `None`
+* Input Signature: must be `(event: EventInput, global_ctx)`. `EventInput` is the returns of the listening groups. `global_ctx` is set by you when invoking events, it can be anything and default to `None`.
+
+  This [example](./examples/3_use_event_output.py) shows how to get returns from `EventInput` .
 * Make sure you decorate the function with `@default_drive.make_event` or `@default_drive.listen_group([EVENT,...])`
 
 Then, run your workflow from any event:
@@ -78,7 +80,7 @@ Then, run your workflow from any event:
 await default_drive.invoke_event(EVENT, EVENT_INPUT, GLOBAL_CTX)
 ```
 
-Check out [examples](./examples) for more use cases and features!
+Check out [examples](./examples) for more detailed usages and features!
 
 ## Features
 

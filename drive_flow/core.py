@@ -88,9 +88,11 @@ class EventEngineCls:
         max_async_events: Optional[int] = None,
     ) -> dict[str, Any]:
         this_run_ctx: dict[str, InvokeInterCache] = {}
-        queue: list[Tuple[BaseEvent, EventInput]] = [(event, event_input)]
+        queue: list[Tuple[str, EventInput]] = [(event.id, event_input)]
 
-        async def run_event(current_event: BaseEvent, current_event_input: Any):
+        async def run_event(current_event_id: str, current_event_input: Any):
+            current_event = self.get_event_from_id(current_event_id)
+            assert current_event is not None, f"Event {current_event_id} not found"
             result = await current_event.solo_run(current_event_input, global_ctx)
             this_run_ctx[current_event.id] = {
                 "result": result,
@@ -106,7 +108,7 @@ class EventEngineCls:
                             results=this_group_returns,
                             behavior=ReturnBehavior.GOTO,
                         )
-                        queue.append((group_marker, build_input_goto))
+                        queue.append((group_marker.id, build_input_goto))
                 elif result.behavior == ReturnBehavior.ABORT:
                     return
             else:
@@ -146,7 +148,7 @@ class EventEngineCls:
                             build_input = EventInput(
                                 group_name=group.name, results=this_group_returns
                             )
-                            queue.append((cand_event, build_input))
+                            queue.append((cand_event.id, build_input))
 
         tasks = set()
         try:
