@@ -69,9 +69,7 @@ In this example, The return of `hello` event will trigger `world` event.
 
 To make an event function, there are few elements:
 
-* Input Signature: must be `(event: EventInput, global_ctx)`
-  * `EventInput` is the returns of the listening groups.
-  * `global_ctx` is set by you when invoking events, it can be anything and default to `None`
+* Input Signature: must be `(event: EventInput, global_ctx)`. `EventInput` is the returns of the listening groups. `global_ctx` is set by you when invoking events, it can be anything and default to `None`
 * Make sure you decorate the function with `@default_drive.make_event` or `@default_drive.listen_group([EVENT,...])`
 
 Then, run your workflow from any event:
@@ -80,7 +78,7 @@ Then, run your workflow from any event:
 await default_drive.invoke_event(EVENT, EVENT_INPUT, GLOBAL_CTX)
 ```
 
-Check out [examples](./examples) for more user cases!
+Check out [examples](./examples) for more use cases and features!
 
 ## Features
 
@@ -118,7 +116,12 @@ assert results[adding.id] == 3
 ```
 </details>
 
+`drive_flow` suppports different behaviors for multi-event triggering:
 
+- `all`: retrigger this event only when all the listening events are updated.
+- `any`: retrigger this event as long as one of the listening events is updated.
+
+Check out this [example](./examples/5_retrigger_type.py) for more details
 
 ### Parallel
 
@@ -158,7 +161,7 @@ asyncio.run(default_drive.invoke_event(start))
 `drive_flow` is dynamic. You can use `goto` and `abort` to change the workflow at runtime:
 
 <details>
-<summary> code snippet for abort</summary>
+<summary> code snippet for abort_this</summary>
 
 ```python
 from drive_flow.dynamic import abort_this
@@ -166,7 +169,10 @@ from drive_flow.dynamic import abort_this
 @default_drive.make_event
 async def a(event: EventInput, global_ctx):
     return abort_this()
-
+# abort_this is not exiting the whole workflow,
+# only abort this event's return and not causing any other influence
+# `a` chooses to abort its return. So no more events in this invoking.
+# this invoking then will end
 @default_drive.listen_group([a])
 async def b(event: EventInput, global_ctx):
     assert False, "should not be called"
