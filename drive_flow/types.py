@@ -16,6 +16,7 @@ class ReturnBehavior(Enum):
     DISPATCH = "dispatch"
     GOTO = "goto"
     ABORT = "abort"
+    INPUT = "input"
 
 
 class TaskStatus(Enum):
@@ -43,6 +44,12 @@ class EventGroupInput:
 @dataclass
 class EventInput(EventGroupInput):
     task_id: str = field(default_factory=generate_uuid)
+
+    @classmethod
+    def from_input(cls: "EventInput", input_data: dict[str, Any]) -> "EventInput":
+        return cls(
+            group_name="user_input", results=input_data, behavior=ReturnBehavior.INPUT
+        )
 
 
 @dataclass

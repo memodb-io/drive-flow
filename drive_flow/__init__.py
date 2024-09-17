@@ -1,7 +1,7 @@
 from .core import EventEngineCls
-from .types import EventInput
+from .types import EventInput, ReturnBehavior
 
-__version__ = "0.0.1.alpha3"
+__version__ = "0.0.1.alpha4"
 __author__ = "Jianbai Ye"
 __url__ = "https://github.com/memodb-io/drive-flow"
 

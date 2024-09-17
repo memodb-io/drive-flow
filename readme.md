@@ -62,10 +62,14 @@ async def hello(event: EventInput, global_ctx):
 async def world(event: EventInput, global_ctx):
     print("world")
 
+# display the dependencies of 'world' event
+print(world.debug_string()) 
 asyncio.run(default_drive.invoke_event(hello))
 ```
 
 In this example, The return of `hello` event will trigger `world` event.
+
+### Break-down
 
 To make an event function, there are few elements:
 
@@ -116,9 +120,13 @@ async def adding(event: EventInput, global_ctx):
 results = asyncio.run(default_drive.invoke_event(start))
 assert results[adding.id] == 3
 ```
+
+`adding` will be triggered at first time as long as `hello` and `world` are done.
 </details>
 
-`drive_flow` suppports different behaviors for multi-event triggering:
+#### Re-trigger the event
+
+`drive_flow` suppports different behaviors for multi-event retriggering:
 
 - `all`: retrigger this event only when all the listening events are updated.
 - `any`: retrigger this event as long as one of the listening events is updated.
@@ -149,7 +157,6 @@ async def world(event: EventInput, global_ctx):
     print(datetime.now(), "world")
     await asyncio.sleep(0.2)
     print(datetime.now(), "world done")
-
 
 asyncio.run(default_drive.invoke_event(start))
 ```

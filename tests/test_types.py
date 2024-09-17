@@ -1,4 +1,11 @@
-from drive_flow.types import BaseEvent, EventGroup
+from drive_flow.types import BaseEvent, EventGroup, EventInput, ReturnBehavior
+
+
+def test_user_input():
+    fake_input = {"query": "Hello World"}
+    a = EventInput.from_input(fake_input)
+    assert a.results == fake_input
+    assert a.behavior == ReturnBehavior.INPUT
 
 
 def test_node_hash():
