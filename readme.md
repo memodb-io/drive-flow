@@ -69,6 +69,10 @@ asyncio.run(default_drive.invoke_event(hello))
 
 In this example, The return of `hello` event will trigger `world` event.
 
+> [!TIP]
+>
+> Hello world is not cool enough? Try to build a [ReAct Agent Workflow](./examples/6_llm_agent_ReAct.py) with `drive-flow`
+
 ### Break-down
 
 To make an event function, there are few elements:
@@ -230,4 +234,4 @@ asyncio.run(default_drive.invoke_event(a))
 
 - [x] fix: streaming event executation
 - [x] fix: an event never receive the listened events' results twice (de-duplication), unless the group is totally updated for `retrigger_type='all'`
-- [ ] Add ReAct workflow example
+- [x] Add ReAct workflow example
